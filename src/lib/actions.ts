@@ -725,10 +725,14 @@ export const createAttendance = async (
     const data = Object.fromEntries(formData);
     const validatedData = attendanceSchema.parse(data);
     
+    const present = validatedData.present === true || 
+                   validatedData.present === "true" || 
+                   String(validatedData.present).toLowerCase() === "true";
+    
     await prisma.attendance.create({
       data: {
         date: validatedData.date,
-        present: validatedData.present,
+        present: present,
         studentId: validatedData.studentId,
         lessonId: validatedData.lessonId,
       },
@@ -750,13 +754,17 @@ export const updateAttendance = async (
     const data = Object.fromEntries(formData);
     const validatedData = attendanceSchema.parse(data);
     
+    const present = validatedData.present === true || 
+                   validatedData.present === "true" || 
+                   String(validatedData.present).toLowerCase() === "true";
+    
     await prisma.attendance.update({
       where: {
         id: validatedData.id,
       },
       data: {
         date: validatedData.date,
-        present: validatedData.present,
+        present: present,
         studentId: validatedData.studentId,
         lessonId: validatedData.lessonId,
       },

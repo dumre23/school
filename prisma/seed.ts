@@ -67,7 +67,7 @@ async function main() {
     },
   });
   
-  // Additional dummy teachers
+  // Additional dummy teachers with assigned classes
   for (let i = 2; i <= 15; i++) {
     await prisma.teacher.create({
       data: {
@@ -81,14 +81,80 @@ async function main() {
         bloodType: "A+",
         sex: i % 2 === 0 ? UserSex.MALE : UserSex.FEMALE,
         subjects: { connect: [{ id: (i % 10) + 1 }] }, 
-        classes: { connect: [{ id: (i % 6) + 1 }] }, 
+        classes: { 
+          connect: [
+            { id: (i % 6) + 1 },
+            { id: ((i + 1) % 6) + 1 }
+          ] 
+        }, 
         birthday: new Date(new Date().setFullYear(new Date().getFullYear() - 30)),
       },
     });
   }
 
+  // UPDATE CLASSES WITH SUPERVISORS
+  await prisma.class.update({
+    where: { id: 1 },
+    data: { supervisorId: "user_35mnIp16jsEvxb8MCJrDzak5asY" },
+  });
+  await prisma.class.update({
+    where: { id: 2 },
+    data: { supervisorId: "user_35mnIp16jsEvxb8MCJrDzak5asY" },
+  });
+  await prisma.class.update({
+    where: { id: 3 },
+    data: { supervisorId: "teacher2" },
+  });
+  await prisma.class.update({
+    where: { id: 4 },
+    data: { supervisorId: "teacher3" },
+  });
+  await prisma.class.update({
+    where: { id: 5 },
+    data: { supervisorId: "teacher4" },
+  });
+  await prisma.class.update({
+    where: { id: 6 },
+    data: { supervisorId: "teacher5" },
+  });
+
   // LESSON
-  for (let i = 1; i <= 30; i++) {
+  // Teacher1 schedule with proper time slots (Monday-Friday)
+  // November 17-21, 2025 (Monday to Friday)
+  const teacher1Lessons = [
+    // Monday (Nov 17)
+    { name: "Math 1A", day: Day.MONDAY, startTime: new Date(2024, 10, 18, 9, 0), endTime: new Date(2024, 10, 18, 10, 0), subjectId: 1, classId: 1 },
+    { name: "Math 2A", day: Day.MONDAY, startTime: new Date(2024, 10, 18, 10, 30), endTime: new Date(2024, 10, 18, 11, 30), subjectId: 1, classId: 2 },
+    { name: "Science 1A", day: Day.MONDAY, startTime: new Date(2024, 10, 18, 13, 0), endTime: new Date(2024, 10, 18, 14, 0), subjectId: 2, classId: 1 },
+    // Tuesday (Nov 19)
+    { name: "Math 1A", day: Day.TUESDAY, startTime: new Date(2024, 10, 19, 8, 30), endTime: new Date(2024, 10, 19, 9, 30), subjectId: 1, classId: 1 },
+    { name: "Science 2A", day: Day.TUESDAY, startTime: new Date(2024, 10, 19, 11, 0), endTime: new Date(2024, 10, 19, 12, 0), subjectId: 2, classId: 2 },
+    { name: "Math 2A", day: Day.TUESDAY, startTime: new Date(2024, 10, 19, 14, 0), endTime: new Date(2024, 10, 19, 15, 0), subjectId: 1, classId: 2 },
+    // Wednesday (Nov 20)
+    { name: "Science 1A", day: Day.WEDNESDAY, startTime: new Date(2024, 10, 20, 9, 0), endTime: new Date(2024, 10, 20, 10, 0), subjectId: 2, classId: 1 },
+    { name: "Math 1A", day: Day.WEDNESDAY, startTime: new Date(2024, 10, 20, 10, 30), endTime: new Date(2024, 10, 20, 11, 30), subjectId: 1, classId: 1 },
+    { name: "Science 2A", day: Day.WEDNESDAY, startTime: new Date(2024, 10, 20, 13, 30), endTime: new Date(2024, 10, 20, 14, 30), subjectId: 2, classId: 2 },
+    // Thursday (Nov 21)
+    { name: "Math 2A", day: Day.THURSDAY, startTime: new Date(2024, 10, 21, 9, 30), endTime: new Date(2024, 10, 21, 10, 30), subjectId: 1, classId: 2 },
+    { name: "Science 1A", day: Day.THURSDAY, startTime: new Date(2024, 10, 21, 11, 0), endTime: new Date(2024, 10, 21, 12, 0), subjectId: 2, classId: 1 },
+    { name: "Math 1A", day: Day.THURSDAY, startTime: new Date(2024, 10, 21, 14, 30), endTime: new Date(2024, 10, 21, 15, 30), subjectId: 1, classId: 1 },
+    // Friday (Nov 22)
+    { name: "Science 2A", day: Day.FRIDAY, startTime: new Date(2024, 10, 22, 8, 30), endTime: new Date(2024, 10, 22, 9, 30), subjectId: 2, classId: 2 },
+    { name: "Math 2A", day: Day.FRIDAY, startTime: new Date(2024, 10, 22, 10, 0), endTime: new Date(2024, 10, 22, 11, 0), subjectId: 1, classId: 2 },
+    { name: "Science 1A", day: Day.FRIDAY, startTime: new Date(2024, 10, 22, 13, 0), endTime: new Date(2024, 10, 22, 14, 0), subjectId: 2, classId: 1 },
+  ];
+
+  for (const lesson of teacher1Lessons) {
+    await prisma.lesson.create({
+      data: {
+        ...lesson,
+        teacherId: "user_35mnIp16jsEvxb8MCJrDzak5asY",
+      },
+    });
+  }
+
+  // Additional lessons for other teachers
+  for (let i = 16; i <= 30; i++) {
     await prisma.lesson.create({
       data: {
         name: `Lesson${i}`, 
@@ -97,11 +163,11 @@ async function main() {
             Math.floor(Math.random() * Object.keys(Day).length)
           ] as keyof typeof Day
         ], 
-        startTime: new Date(new Date().setHours(new Date().getHours() + 1)), 
-        endTime: new Date(new Date().setHours(new Date().getHours() + 3)), 
+        startTime: new Date(2025, 0, 1, 9 + (i % 6), 0), 
+        endTime: new Date(2025, 0, 1, 10 + (i % 6), 0), 
         subjectId: (i % 10) + 1, 
         classId: (i % 6) + 1, 
-        teacherId: i <= 10 ? "user_35mnIp16jsEvxb8MCJrDzak5asY" : `teacher${((i - 10) % 14) + 2}`, 
+        teacherId: `teacher${((i - 15) % 14) + 2}`, 
       },
     });
   }
